@@ -1,0 +1,28 @@
+# STM32CubeIDE / Eclipse
+.settings/
+.metadata/
+*.launch
+
+# Build outputs
+Debug/
+Release/
+build/
+out/
+
+# Generated artifacts
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+
+# OS / tools
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.tmp
+
+# CubeMX backups
+*/.mxproject.backup
