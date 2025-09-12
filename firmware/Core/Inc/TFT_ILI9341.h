@@ -7,7 +7,7 @@
 
 #ifndef INC_TFT_ILI9341_H_
 #define INC_TFT_ILI9341_H_
-#define ILI9341_ROTATION 0 // 0 - 0*, 1 - 90*, 2 - 180*, 3 - 270*
+#define ILI9341_ROTATION 3 // 0 - 0*, 1 - 90*, 2 - 180*, 3 - 270*
 
 #define ILI9341_USE_HW_RESET 1
 #define ILI9341_USE_CS 1
