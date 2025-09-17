@@ -18,11 +18,18 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "TFT_ILI9341.h"
+#include "GFX_Color.h"
+#include "fonts/fonts.h"
+#include "GFX_EnhancedFonts.h"
+#include "EnhancedFonts/arialBlack_20ptFontInfo.h"
+#include "string.h"
 
 /* USER CODE END Includes */
 
@@ -55,7 +62,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t Msg[32];
 /* USER CODE END 0 */
 
 /**
@@ -88,6 +95,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -97,7 +105,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  MainProgramLoop();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
