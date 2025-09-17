@@ -24,13 +24,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "TFT_ILI9341.h"
-#include "GFX_Color.h"
-#include "fonts/fonts.h"
-#include "GFX_EnhancedFonts.h"
-#include "EnhancedFonts/arialBlack_20ptFontInfo.h"
-#include "string.h"
 
+#include "mainProgramLoop.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,7 +57,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t Msg[32];
 /* USER CODE END 0 */
 
 /**

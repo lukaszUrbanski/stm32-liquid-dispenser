@@ -5,6 +5,10 @@
  *      Author: Admin
  */
 
+#include "main.h"
+#include "display.h"
+#include "mainProgramLoop.h"
+
 typedef enum
 {
 	MPL_INIT,
@@ -21,6 +25,9 @@ void MainProgramLoop(void)
 	{
 	case MPL_INIT:
 		// Initialization code here
+
+		Display_Init();
+
 		MPL_CurrentState = MPL_IDLE;
 		break;
 	case MPL_IDLE:
