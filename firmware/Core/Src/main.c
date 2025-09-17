@@ -97,13 +97,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  ILI9341_Init(&hspi1);
-  GFX_SetFont(font_8x5);
-  EF_SetFont(&arialBlack_20ptFontInfo);
-
-  ILI9341_ClearDisplay(ILI9341_WHITE);
-  sprintf(Msg, "Liquid Dispenser");
-  EF_PutString(Msg, 45 , 10, ILI9341_BLUE, BG_TRANSPARENT, ILI9341_WHITE);
 
   /* USER CODE END 2 */
 
@@ -112,7 +105,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  MainProgramLoop();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
