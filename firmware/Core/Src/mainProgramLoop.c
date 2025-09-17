@@ -17,7 +17,8 @@ typedef enum
 	MPL_ERROR
 }MPL_State;
 
-MPL_State MPL_CurrentState = MPL_INIT;
+static MPL_State MPL_CurrentState = MPL_INIT;
+
 
 void MainProgramLoop(void)
 {
@@ -26,12 +27,14 @@ void MainProgramLoop(void)
 	case MPL_INIT:
 		// Initialization code here
 
+
 		Display_Init();
 
 		MPL_CurrentState = MPL_IDLE;
 		break;
 	case MPL_IDLE:
 		// Idle state code here
+		Display_Task();
 		break;
 	case MPL_DISPENSE:
 		// Dispensing code here
