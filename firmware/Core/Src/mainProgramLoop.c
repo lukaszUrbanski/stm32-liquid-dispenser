@@ -5,34 +5,38 @@
  *      Author: Admin
  */
 
-#include "main.h"
-#include "display.h"
+
 #include "mainProgramLoop.h"
 
-typedef enum
+AppData_t AppData =
 {
-	MPL_INIT,
-	MPL_IDLE,
-	MPL_READY,
-	MPL_DISPENSE,
-	MPL_ERROR
-}MPL_State;
+	.totalDispensedVolume = 40,
+	.currentState = MPL_INIT,
+	.StartButtonPressed = 0,
+	.StopButtonPressed = 0,
+	.MenuButtonPressed = 0,
+};
 
-static MPL_State MPL_CurrentState = MPL_INIT;
+void InitActivity(void);
+void IdleActivity(void);
 
+
+
+///////////////////////
+// Main Program Loop //
+///////////////////////
 
 void MainProgramLoop(void)
 {
-	switch(MPL_CurrentState)
+	switch(AppData.currentState)
 	{
 	case MPL_INIT:
 		// Initialization code here
-		Display_Init();
-		MPL_CurrentState = MPL_IDLE;
+		InitActivity();
 		break;
 	case MPL_IDLE:
 		// Idle state code here
-		Display_IdleScreen();
+		IdleActivity();
 		break;
 	case MPL_READY:
 		// Ready state code here
@@ -44,7 +48,27 @@ void MainProgramLoop(void)
 		// Error handling code here
 		break;
 	default:
-		MPL_CurrentState = MPL_ERROR;
+		AppData.currentState = MPL_ERROR;
 		break;
 	}
 }
+
+void InitActivity(void)
+{
+	// Initialize peripherals, variables, etc.
+	Display_Init();
+	AppData.currentState = MPL_IDLE;
+}
+
+void IdleActivity(void)
+{
+	// Code for idle state
+	Display_IdleScreen();
+	if (AppData.StartButtonPressed)
+	{
+		AppData.currentState = MPL_DISPENSE;
+		AppData.isDisplayChanged = 1;
+		AppData.StartButtonPressed = 0; // Reset button state
+	}
+}
+
