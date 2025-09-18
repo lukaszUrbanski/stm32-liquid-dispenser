@@ -34,7 +34,7 @@ void MainProgramLoop(void)
 		break;
 	case MPL_IDLE:
 		// Idle state code here
-		Display_Task();
+		Display_IdleScreen();
 		break;
 	case MPL_DISPENSE:
 		// Dispensing code here

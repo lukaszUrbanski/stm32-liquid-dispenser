@@ -16,18 +16,6 @@
 #include <stdio.h>
 #include "mainProgramLoop.h"
 
-uint8_t Msg[32];
-
-typedef enum
-{
-	TFT_INIT,
-	TFT_IDLE,
-	TFT_DISPENSE,
-	TFT_MENU,
-	TFT_ERROR,
-}TFT_State_t;
-
-TFT_State_t TFT_State = TFT_INIT;
 
 uint8_t isDisplayChanged = 1;
 
@@ -40,11 +28,13 @@ void Display_Init(void)
 
 	EF_PutString((const uint8_t*)"Liquid Dispenser", 45, 50, ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
 
-	TFT_State = TFT_IDLE;
+
 }
 
-void displayIdleScreen(void)
+void Display_IdleScreen(void)
 {
+	uint8_t Msg[32];
+
 	if(!isDisplayChanged) return;
 
 	ILI9341_ClearDisplay(ILI9341_WHITE);
@@ -60,30 +50,7 @@ void displayIdleScreen(void)
 	EF_PutString((const uint8_t*)Msg, 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
 
 	isDisplayChanged = 0;
-}
 
-void Display_Task(void)
-{
-	switch(TFT_State)
-	{
-	case TFT_IDLE:
-		// Idle state code here
-		displayIdleScreen();
-		break;
-	case TFT_DISPENSE:
-		// Dispensing state code here
-
-		break;
-	case TFT_MENU:
-		// Menu state code here
-		break;
-	case TFT_ERROR:
-		// Error handling code here
-		break;
-	default:
-		TFT_State = TFT_ERROR;
-		break;
-	}
 }
 
 
