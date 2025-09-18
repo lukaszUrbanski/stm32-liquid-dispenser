@@ -13,6 +13,7 @@ typedef enum
 {
 	MPL_INIT,
 	MPL_IDLE,
+	MPL_READY,
 	MPL_DISPENSE,
 	MPL_ERROR
 }MPL_State;
@@ -26,15 +27,15 @@ void MainProgramLoop(void)
 	{
 	case MPL_INIT:
 		// Initialization code here
-
-
 		Display_Init();
-
 		MPL_CurrentState = MPL_IDLE;
 		break;
 	case MPL_IDLE:
 		// Idle state code here
 		Display_IdleScreen();
+		break;
+	case MPL_READY:
+		// Ready state code here
 		break;
 	case MPL_DISPENSE:
 		// Dispensing code here
