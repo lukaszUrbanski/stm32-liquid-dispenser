@@ -20,6 +20,9 @@ typedef enum
 }Btn_id_t;
 
 
+void Buttons_Init(void);
+void Buttons_Scan(void);
+bool Button_WasClicked(Btn_id_t id);
 
 
 #endif /* INC_BUTTONS_H_ */

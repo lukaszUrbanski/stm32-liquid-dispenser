@@ -73,3 +73,11 @@ void Buttons_Scan(void)
 		}
 	}
 }
+
+bool Button_WasClicked(Btn_id_t id) {
+  if (btns[id].click_Flag) {
+    btns[id].click_Flag = 0;
+    return true;
+  }
+  return false;
+}
