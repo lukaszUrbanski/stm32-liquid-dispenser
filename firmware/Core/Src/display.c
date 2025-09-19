@@ -30,7 +30,7 @@ void Display_Init(void)
 	AppData.isDisplayChanged = 1;
 }
 
-void Display_IdleScreen(void)
+static void Display_IdleScreen(void)
 {
 	uint8_t Msg[32];
 
@@ -46,11 +46,52 @@ void Display_IdleScreen(void)
 	EF_PutString((const uint8_t*)"DISPENSE", 90, 100, ILI9341_WHITE, BG_TRANSPARENT, ILI9341_DARKGREY);
 
 
-	sprintf((char*)Msg, "Volume: %d ml", AppData.totalDispensedVolume);
+	sprintf((char*)Msg, "Volume: %d ml", AppData.volumeToDispense);
 	EF_PutString((const uint8_t*)Msg, 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
 
 	AppData.isDisplayChanged = 0;
 
+}
+static void Display_DispenseScreen(void)
+{
+	uint8_t Msg[32];
+
+	if(!AppData.isDisplayChanged) return;
+
+	ILI9341_ClearDisplay(ILI9341_WHITE);
+	EF_PutString((const uint8_t*)"Dispensing...", 60, 100, ILI9341_BLUE, BG_TRANSPARENT, ILI9341_WHITE);
+
+	sprintf((char*)Msg, "Volume: %d ml", AppData.totalDispensedVolume);
+	EF_PutString((const uint8_t*)Msg, 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
+
+	AppData.isDisplayChanged = 0;
+}
+
+void Display_Update(void)
+{
+	switch(AppData.currentState)
+	{
+	case MPL_INIT:
+		// Initialization display code here
+		break;
+	case MPL_IDLE:
+		// Idle state display code here
+		Display_IdleScreen();
+		break;
+	case MPL_READY:
+		// Ready state display code here
+		break;
+	case MPL_DISPENSE:
+		// Dispensing display code here
+		Display_DispenseScreen();
+		break;
+	case MPL_ERROR:
+		// Error handling display code here
+		break;
+	default:
+		AppData.currentState = MPL_ERROR;
+		break;
+	}
 }
 
 

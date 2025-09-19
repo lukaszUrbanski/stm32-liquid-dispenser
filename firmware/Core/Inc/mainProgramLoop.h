@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "display.h"
+#include "buttons.h"
 
 
 typedef enum
@@ -23,6 +24,7 @@ typedef enum
 
 typedef struct
 {
+	uint32_t 		volumeToDispense; // in milliliters
 	uint32_t 		totalDispensedVolume; // in milliliters
 	MPL_State_t 	currentState;
 

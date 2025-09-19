@@ -11,6 +11,7 @@
 #include "main.h"
 
 void Display_Init(void);
-void Display_IdleScreen(void);
+void Display_Update(void);
+
 
 #endif /* INC_DISPLAY_H_ */
