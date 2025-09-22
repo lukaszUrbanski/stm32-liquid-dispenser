@@ -38,7 +38,6 @@ uint8_t enc_B;
 uint8_t enc_state;
 uint8_t enc_prewState;
 
-
 static btn_t btns[BTN_COUNT];
 
 static inline uint8_t readButton(Btn_id_t btn_id)
@@ -98,10 +97,36 @@ bool Button_WasClicked(Btn_id_t id) {
   return false;
 }
 
-//void ReadEncoder(void)
-//{
-//	uint32_t currentTime = HAL_GetTick();
-//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-//
-//}
+EncoderDir_t EncoderRotated(void)
+{
+	//uint32_t currentTime = HAL_GetTick();
+	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+	enc_state = (enc_A << 1) | enc_B;
+
+
+	if(enc_state != enc_prewState)
+	{
+		// Simple state machine for quadrature encoder
+		if((enc_prewState == 0b00 && enc_state == 0b01) ||
+		   (enc_prewState == 0b01 && enc_state == 0b11) ||
+		   (enc_prewState == 0b11 && enc_state == 0b10) ||
+		   (enc_prewState == 0b10 && enc_state == 0b00))
+		{
+			// Clockwise rotation
+			// Handle clockwise rotation event here
+			return ENC_CW;
+		}
+		else if((enc_prewState == 0b00 && enc_state == 0b10) ||
+				(enc_prewState == 0b10 && enc_state == 0b11) ||
+				(enc_prewState == 0b11 && enc_state == 0b01) ||
+				(enc_prewState == 0b01 && enc_state == 0b00))
+		{
+			// Counter-clockwise rotation
+			// Handle counter-clockwise rotation event here
+			return ENC_CCW;
+		}
+		enc_prewState = enc_state;
+	}
+	return ENC_NONE;
+}
