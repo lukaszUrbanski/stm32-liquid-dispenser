@@ -70,8 +70,25 @@ void InitActivity(void)
 void IdleActivity(void)
 {
 	// Code for idle state
-	Display_Update();
 	Buttons_Scan();
+	EncoderDir_t Rotation = EncoderRotated();
+
+	if(Rotation == ENC_CW)
+	{
+		AppData.volumeToDispense += 10;
+		AppData.isDisplayChanged = 1;
+	}
+	else if (Rotation == ENC_CCW)
+	{
+		if (AppData.volumeToDispense >= 10)
+		{
+			AppData.volumeToDispense -= 10;
+			AppData.isDisplayChanged = 1;
+		}
+	}
+
+	Display_Update();
+
 	if (Button_WasClicked(BTN_START))
 	{
 		AppData.currentState = MPL_DISPENSE;
