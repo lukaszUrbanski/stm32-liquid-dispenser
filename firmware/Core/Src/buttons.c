@@ -23,13 +23,21 @@ static const btn_hw_t btn_hw[BTN_COUNT] =
 	{BTN_MENU_GPIO_Port, BTN_MENU_Pin}  // BTN_MENU
 };
 
+
+
 typedef struct
 {
 	uint8_t stable;
 	uint8_t sample;
 	uint32_t lastChangeTime;
-	uint8_t click_Flag;
+	uint8_t click_flag;
 }btn_t;
+
+uint8_t enc_A;
+uint8_t enc_B;
+uint8_t enc_state;
+uint8_t enc_prewState;
+
 
 static btn_t btns[BTN_COUNT];
 
@@ -45,8 +53,16 @@ void Buttons_Init(void)
 		btns[i].stable = readButton((Btn_id_t)i);
 		btns[i].sample = btns[i].stable;
 		btns[i].lastChangeTime = HAL_GetTick();
-		btns[i].click_Flag = 0;
+		btns[i].click_flag = 0;
 	}
+}
+
+
+void Encoder_Init(void) {
+ enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+ enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+ enc_state = (enc_A << 1) | enc_B;
+ enc_prewState = enc_state;
 }
 
 void Buttons_Scan(void)
@@ -67,7 +83,7 @@ void Buttons_Scan(void)
 				btns[i].stable = btns[i].sample;
 				if(btns[i].stable == 1)
 				{
-					btns[i].click_Flag = 1;
+					btns[i].click_flag = 1;
 				}
 			}
 		}
@@ -75,9 +91,17 @@ void Buttons_Scan(void)
 }
 
 bool Button_WasClicked(Btn_id_t id) {
-  if (btns[id].click_Flag) {
-    btns[id].click_Flag = 0;
+  if (btns[id].click_flag) {
+    btns[id].click_flag = 0;
     return true;
   }
   return false;
 }
+
+//void ReadEncoder(void)
+//{
+//	uint32_t currentTime = HAL_GetTick();
+//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+//
+//}
