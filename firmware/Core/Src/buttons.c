@@ -35,6 +35,8 @@ typedef struct
 	uint8_t click_flag;
 }btn_t;
 
+static btn_t btn_states[BTN_COUNT];
+
 /* -- Encoder states -- */
 uint8_t enc_A;
 uint8_t enc_B;
@@ -57,33 +59,40 @@ static inline void q_push(btn_event_type_t event, btn_id_t id)
 	}
 }
 
+bool Buttons_GetEvent(btn_event_t* event)
+{
+	if(q_head == q_tail) return false; // Queue empty
+	*event = eventQueue[q_tail];
+	q_tail = (q_tail + 1) % QUEUE_SIZE;
+	return true;
+}
 
-
-static btn_t btns[BTN_COUNT];
-
+/* -- Raw read state of button  -- */
 static inline uint8_t readButton(btn_id_t btn_id)
 {
 	return (HAL_GPIO_ReadPin(btn_hw[btn_id].port, btn_hw[btn_id].pin) == GPIO_PIN_RESET) ? 1 : 0;
 }
 
+
+/* -- Public functions -- */
 void Buttons_Init(void)
 {
 	for(uint8_t i = 0; i < BTN_COUNT; i++)
 	{
-		btns[i].stable = readButton((btn_id_t)i);
-		btns[i].sample = btns[i].stable;
-		btns[i].lastChangeTime = HAL_GetTick();
-		btns[i].click_flag = 0;
+		btn_states[i].stable = readButton((btn_id_t)i);
+		btn_states[i].sample = btn_states[i].stable;
+		btn_states[i].lastChangeTime = HAL_GetTick();
+		btn_states[i].click_flag = 0;
 	}
+	 enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+	 enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+	 enc_state = (enc_A << 1) | enc_B;
+	 enc_prewState = enc_state;	// Initialize encoder state
+	q_head = q_tail = 0; 	// Initialize queue
 }
 
 
-void Encoder_Init(void) {
- enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
- enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
- enc_state = (enc_A << 1) | enc_B;
- enc_prewState = enc_state;
-}
+
 
 void Buttons_Scan(void)
 {
@@ -91,19 +100,19 @@ void Buttons_Scan(void)
 	for(uint8_t i = 0; i < BTN_COUNT; i++)
 	{
 		uint8_t currentSample = readButton((btn_id_t)i);
-		if(currentSample != btns[i].sample)
+		if(currentSample != btn_states[i].sample)
 		{
-			btns[i].sample = currentSample;
-			btns[i].lastChangeTime = currentTime;
+			btn_states[i].sample = currentSample;
+			btn_states[i].lastChangeTime = currentTime;
 		}
-		else if((currentTime - btns[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
+		else if((currentTime - btn_states[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
 		{
-			if(btns[i].stable != btns[i].sample)
+			if(btn_states[i].stable != btn_states[i].sample)
 			{
-				btns[i].stable = btns[i].sample;
-				if(btns[i].stable == 1)
+				btn_states[i].stable = btn_states[i].sample;
+				if(btn_states[i].stable == 1)
 				{
-					btns[i].click_flag = 1;
+					btn_states[i].click_flag = 1;
 				}
 			}
 		}
@@ -111,8 +120,8 @@ void Buttons_Scan(void)
 }
 
 bool Button_WasClicked(btn_id_t id) {
-  if (btns[id].click_flag) {
-    btns[id].click_flag = 0;
+  if (btn_states[id].click_flag) {
+    btn_states[id].click_flag = 0;
     return true;
   }
   return false;
