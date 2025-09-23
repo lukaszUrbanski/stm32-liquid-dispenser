@@ -25,7 +25,7 @@ void IdleActivity(void);
 void DispenseActivity(void);
 
 uint32_t time_stamp = 0; // for simulate dispensing
-
+btn_event_t lastEvent;
 ///////////////////////
 // Main Program Loop //
 ///////////////////////
@@ -70,7 +70,10 @@ void InitActivity(void)
 void IdleActivity(void)
 {
 	// Code for idle state
-	Buttons_Scan();
+	//Buttons_Scan();
+
+	Buttons_GetEvent(&lastEvent);
+
 	EncoderDir_t Rotation = EncoderRotated();
 
 	if(Rotation == ENC_CW)
@@ -89,7 +92,7 @@ void IdleActivity(void)
 
 	Display_Update();
 
-	if (Button_WasClicked(BTN_START))
+	if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK)
 	{
 		AppData.currentState = MPL_DISPENSE;
 		AppData.isDisplayChanged = 1;
