@@ -7,8 +7,9 @@
 
 #include "main.h"
 #include "buttons.h"
+#include "tim.h"
 
-#define DEBOUNCE_TIME_MS 50
+#define DEBOUNCE_TIME_MS 20
 
 /* -- Button hardware configuration -- */
 typedef struct
@@ -28,8 +29,8 @@ static const btn_hw_t btn_hw[BTN_COUNT -1] =
 /* -- Button states -- */
 typedef struct
 {
-	uint8_t stable;
-	uint8_t sample;
+	uint8_t stable; // Stable state after debounce
+	uint8_t sample;	// Current sampled state
 	uint32_t lastChangeTime;
 	uint32_t debounceCounter;
 	uint8_t click_flag;
@@ -75,6 +76,7 @@ static inline uint8_t readButton(btn_id_t btn_id)
 
 
 /* -- Public functions -- */
+uint16_t debugCounter;
 void Buttons_Init(void)
 {
 	for(uint8_t i = 0; i < BTN_COUNT; i++)
@@ -84,11 +86,60 @@ void Buttons_Init(void)
 		btn_states[i].lastChangeTime = HAL_GetTick();
 		btn_states[i].click_flag = 0;
 	}
-	 enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-	 enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-	 enc_state = (enc_A << 1) | enc_B;
-	 enc_prewState = enc_state;	// Initialize encoder state
-	q_head = q_tail = 0; 	// Initialize queue
+	// Initialize encoder state
+	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+	enc_state = (enc_A << 1) | enc_B;
+	enc_prewState = enc_state;
+
+	// Initialize queue
+	q_head = q_tail = 0;
+
+	HAL_TIM_Base_Start_IT(&htim3); // Start timer for encoder if needed
+	debugCounter = 0;
+}
+
+void Buttons_ScanISR(void)
+{
+	for(btn_id_t i = 0; i < BTN_COUNT; i++)
+	{
+		uint8_t currentSample = readButton(i);
+		if(currentSample != btn_states[i].sample)
+		{
+			btn_states[i].sample = currentSample;
+			btn_states[i].lastChangeTime = HAL_GetTick();
+		}
+		else if((HAL_GetTick() - btn_states[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
+		{
+			if(btn_states[i].stable != btn_states[i].sample)
+			{
+				btn_states[i].stable = btn_states[i].sample;
+				if(btn_states[i].stable == 1)
+				{
+					btn_states[i].click_flag = 1;
+					q_push(EV_CLICK, i);
+				}
+				else
+				{
+					q_push(EV_NONE, i);
+				}
+			}
+		}
+	}
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM3) // Encoder timer
+	{
+		if(debugCounter >= 100) // 1 second at 0.5ms interval
+		{
+			debugCounter = 0;
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin); // For debug
+		}
+		debugCounter++;
+		Buttons_ScanISR();
+	}
 }
 
 
@@ -160,3 +211,5 @@ EncoderDir_t EncoderRotated(void)
 	}
 	return ENC_NONE;
 }
+
+

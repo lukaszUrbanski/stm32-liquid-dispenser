@@ -45,6 +45,8 @@ void Buttons_Init(void);
 void Buttons_Scan(void);
 bool Button_WasClicked(btn_id_t id);
 EncoderDir_t EncoderRotated(void);
+bool Buttons_GetEvent(btn_event_t* event);
+
 
 
 #endif /* INC_BUTTONS_H_ */
