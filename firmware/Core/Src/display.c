@@ -30,7 +30,7 @@ void Display_Init(void)
 	AppData.isDisplayChanged = 1;
 }
 
-static void Display_IdleScreen(void)
+void Display_PrintIdleScreen(void)
 {
 	uint8_t Msg[32];
 
@@ -52,7 +52,7 @@ static void Display_IdleScreen(void)
 	AppData.isDisplayChanged = 0;
 
 }
-static void Display_DispenseScreen(void)
+void Display_DispenseScreen(void)
 {
 	uint8_t Msg[32];
 
@@ -67,32 +67,7 @@ static void Display_DispenseScreen(void)
 	AppData.isDisplayChanged = 0;
 }
 
-void Display_Update(void)
-{
-	switch(AppData.currentState)
-	{
-	case MPL_INIT:
-		// Initialization display code here
-		break;
-	case MPL_IDLE:
-		// Idle state display code here
-		Display_IdleScreen();
-		break;
-	case MPL_READY:
-		// Ready state display code here
-		break;
-	case MPL_DISPENSE:
-		// Dispensing display code here
-		Display_DispenseScreen();
-		break;
-	case MPL_ERROR:
-		// Error handling display code here
-		break;
-	default:
-		AppData.currentState = MPL_ERROR;
-		break;
-	}
-}
+
 
 
 

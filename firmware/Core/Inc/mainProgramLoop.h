@@ -12,21 +12,31 @@
 #include "display.h"
 #include "buttons.h"
 
-
 typedef enum
 {
 	MPL_INIT,
 	MPL_IDLE,
-	MPL_READY,
-	MPL_DISPENSE,
-	MPL_ERROR
+	MPL_TFT_UPDATE,
+	MPL_BUTTONS_SCAN,
+	MPL_SENSORS_READ,
+	MPL_PUMP_CONTROL
 }MPL_State_t;
+
+
+typedef enum
+{
+	DEV_IDLE,
+	DEV_READY,
+	DEV_DISPENSE,
+	DEV_ERROR
+}Device_State_t;
 
 typedef struct
 {
 	uint32_t 		volumeToDispense; // in milliliters
 	uint32_t 		totalDispensedVolume; // in milliliters
-	MPL_State_t 	currentState;
+	MPL_State_t 	currentMPLState;
+	Device_State_t 	currentDeviceState;
 
 	uint8_t 		isDisplayChanged;
 
@@ -39,5 +49,12 @@ typedef struct
 
 void MainProgramLoop(void);
 
+void Mpl_InitActivity(void);
+void Mpl_IdleActivity(void);
+void Mpl_TFTUpdateActivity(void);
+void Mpl_ButtonsScanActivity(void);
+void Mpl_SensorsReadActivity(void);
+
+void DispenseActivity(void);
 
 #endif /* INC_MAINPROGRAMLOOP_H_ */
