@@ -55,7 +55,7 @@ void Mpl_InitActivity(void)
 	// Initialize peripherals, variables, etc.
 	AppData.volumeToDispense = 100; // Default volume to dispense
 	AppData.totalDispensedVolume = 0;
-	AppData.isDisplayChanged = 1;
+	AppData.displayState = DISP_NEW;
 
 	Display_Init();
 	Buttons_Init();
@@ -75,7 +75,7 @@ void Mpl_IdleActivity(void)
 
 void Mpl_TFTUpdateActivity(void)
 {
-	if(!AppData.isDisplayChanged)
+	if(AppData.displayState == DISP_NONE)
 	{
 		AppData.currentMPLState = MPL_BUTTONS_SCAN;
 		return; // No need to update
@@ -92,7 +92,7 @@ void Mpl_TFTUpdateActivity(void)
 		break;
 
 	case DEV_DISPENSE:
-		Display_DispenseScreen();
+		Display_PrintDispenseScreen();
 		break;
 
 	case DEV_ERROR:
@@ -118,17 +118,19 @@ void Mpl_ButtonsScanActivity(void)
 
 		if (Rotation == ENC_CW) {
 			AppData.volumeToDispense += 10;
-			AppData.isDisplayChanged = 1;
+			AppData.displayState = DISP_UPDATE;
 		} else if (Rotation == ENC_CCW) {
 			if (AppData.volumeToDispense >= 10) {
 				AppData.volumeToDispense -= 10;
-				AppData.isDisplayChanged = 1;
+				AppData.displayState = DISP_UPDATE;
 			}
 		}
 
 		if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
+
 			AppData.currentDeviceState = DEV_DISPENSE;
-			AppData.isDisplayChanged = 1;
+
+			AppData.displayState = DISP_NEW;
 			dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
 			//AppData.StartButtonPressed = 0; // Reset button state
 		}
@@ -139,9 +141,8 @@ void Mpl_ButtonsScanActivity(void)
 	case DEV_DISPENSE:
 		if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
 			AppData.currentDeviceState = DEV_IDLE;
-			AppData.isDisplayChanged = 1;
+			AppData.displayState = DISP_UPDATE;
 			AppData.totalDispensedVolume = 0; // Reset for next time
-			//AppData.StopButtonPressed = 0; // Reset button state
 		}
 		break;
 
@@ -169,42 +170,16 @@ void Mpl_SensorsReadActivity(void)
 		if (HAL_GetTick() - dispense_time_stamp >= 500){
 				dispense_time_stamp = HAL_GetTick();
 				AppData.totalDispensedVolume += 10; // Increment dispensed volume
-				AppData.isDisplayChanged = 1; // Mark display for update
+				AppData.displayState = DISP_UPDATE; // Mark display for update
 				// Simulate time taken to dispense
 			}
 			if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
 			{
 				AppData.currentDeviceState = DEV_IDLE;
 				AppData.totalDispensedVolume = 0; // Reset for next time
-				AppData.isDisplayChanged = 1;
+				AppData.displayState = DISP_NEW;
 			}
 	}
 	AppData.currentMPLState = MPL_IDLE;
 }
 
-void DispenseActivity(void)
-{
-
-	// Code for dispensing state
-	Display_Update();
-	Buttons_Scan();
-	if (Button_WasClicked(BTN_STOP))
-	{
-		AppData.currentDeviceState = DEV_IDLE;
-		AppData.isDisplayChanged = 1;
-		//AppData.StopButtonPressed = 0; // Reset button state
-	}
-	// Simulate dispensing process
-	if (HAL_GetTick() - dispense_time_stamp >= 1000){
-		dispense_time_stamp = HAL_GetTick();
-		AppData.totalDispensedVolume += 10; // Increment dispensed volume
-		AppData.isDisplayChanged = 1; // Mark display for update
-		// Simulate time taken to dispense
-	}
-	if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
-	{
-		AppData.currentDeviceState = DEV_IDLE;
-		AppData.totalDispensedVolume = 0; // Reset for next time
-		AppData.isDisplayChanged = 1;
-	}
-}

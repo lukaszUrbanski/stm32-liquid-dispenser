@@ -31,6 +31,13 @@ typedef enum
 	DEV_ERROR
 }Device_State_t;
 
+typedef enum
+{
+	DISP_NONE,
+	DISP_NEW,
+	DISP_UPDATE
+}Disp_State_t;
+
 typedef struct
 {
 	uint32_t 		volumeToDispense; // in milliliters
@@ -38,7 +45,8 @@ typedef struct
 	MPL_State_t 	currentMPLState;
 	Device_State_t 	currentDeviceState;
 
-	uint8_t 		isDisplayChanged;
+	Disp_State_t 	displayState;
+	uint8_t 		isStageChanged;
 
 	uint8_t 		StartButtonPressed;
 	uint8_t 		StopButtonPressed;
@@ -55,6 +63,6 @@ void Mpl_TFTUpdateActivity(void);
 void Mpl_ButtonsScanActivity(void);
 void Mpl_SensorsReadActivity(void);
 
-void DispenseActivity(void);
+
 
 #endif /* INC_MAINPROGRAMLOOP_H_ */
