@@ -52,7 +52,7 @@ void Display_PrintIdleScreen(void)
 	AppData.isDisplayChanged = 0;
 
 }
-void Display_DispenseScreen(void)
+void Display_PrintDispenseScreen(void)
 {
 	uint8_t Msg[32];
 
