@@ -36,7 +36,7 @@ void Display_Init(void)
 
 void Display_PrintIdleScreen(void)
 {
-	uint8_t Msg[8];
+	uint8_t Msg[32];
 
 	if(AppData.displayState == DISP_NONE) return;
 
@@ -49,18 +49,20 @@ void Display_PrintIdleScreen(void)
 //	GFX_DrawFillRectangle(20, (240 - 10 - 30), 85, 30, ILI9341_DARKGREY );
 //	EF_PutString((const uint8_t*)"MENU", 25, (240 - 10 - 30), ILI9341_WHITE, BG_TRANSPARENT, ILI9341_DARKGREY);
 
-		GFX_DrawFillRoundRectangle(85, 90, 150, 50, 10, ILI9341_DARKGREY);
+		//GFX_DrawFillRoundRectangle(85, 90, 150, 50, 10, ILI9341_DARKGREY);
+		ILI9341_ClearArea(85, 90, 150, 50, ILI9341_DARKGREY);
 		EF_PutString((const uint8_t*) "DISPENSE", 90, 100, ILI9341_WHITE,
 		BG_TRANSPARENT, ILI9341_DARKGREY);
 
-		//sprintf((char*)Msg, "%d ml", AppData.volumeToDispense);
-		EF_PutString((const uint8_t*) "Volume: ", 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
+		sprintf((char*)Msg, "Volume: %ld ml", AppData.volumeToDispense);
+		EF_PutString((const uint8_t*) Msg, 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
 	}
 	if(AppData.displayState == DISP_UPDATE)
 	{
 		// Update only the volume value
-		sprintf((char*)Msg, "%d ml", AppData.volumeToDispense);
-		EF_PutString((const uint8_t*)Msg, 150, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
+		ILI9341_ClearArea(165, 150, 120, 30, ILI9341_WHITE);
+		sprintf((char*)Msg, "%ld ml", AppData.volumeToDispense);
+		EF_PutString((const uint8_t*)Msg, 170, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
 	}
 
 	AppData.displayState = DISP_NONE;
@@ -72,14 +74,28 @@ void Display_PrintDispenseScreen(void)
 {
 	uint8_t Msg[32];
 
-	if(AppData.displayState = DISP_NONE) return;
+	if(AppData.displayState == DISP_NONE) return;
 
-	ILI9341_ClearDisplay(ILI9341_WHITE);
-	EF_PutString((const uint8_t*)"Dispensing...", 60, 100, ILI9341_BLUE, BG_TRANSPARENT, ILI9341_WHITE);
+	if(AppData.displayState == DISP_NEW)
+	{
 
-	sprintf((char*)Msg, "Volume: %d ml", AppData.totalDispensedVolume);
-	EF_PutString((const uint8_t*)Msg, 50, 150,  ILI9341_BLACK, BG_TRANSPARENT, ILI9341_WHITE);
+		ILI9341_ClearDisplay(ILI9341_WHITE);
+		EF_PutString((const uint8_t*) "Dispensing...", 60, 100, ILI9341_BLUE,
+		BG_TRANSPARENT, ILI9341_WHITE);
 
+		sprintf((char*) Msg, "Volume: %ld ml", AppData.totalDispensedVolume);
+		EF_PutString((const uint8_t*) Msg, 50, 150, ILI9341_BLACK,
+		BG_TRANSPARENT, ILI9341_WHITE);
+	}
+
+	if(AppData.displayState == DISP_UPDATE)
+	{
+		// Update only the volume value
+		ILI9341_ClearArea(165, 150, 120, 30, ILI9341_WHITE);
+		sprintf((char*) Msg, "%ld ml", AppData.totalDispensedVolume);
+		EF_PutString((const uint8_t*) Msg, 170, 150, ILI9341_BLACK,
+		BG_TRANSPARENT, ILI9341_WHITE);
+	}
 	AppData.displayState = DISP_NONE;
 }
 

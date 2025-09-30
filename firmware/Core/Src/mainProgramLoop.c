@@ -141,7 +141,7 @@ void Mpl_ButtonsScanActivity(void)
 	case DEV_DISPENSE:
 		if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
 			AppData.currentDeviceState = DEV_IDLE;
-			AppData.displayState = DISP_UPDATE;
+			AppData.displayState = DISP_NEW;
 			AppData.totalDispensedVolume = 0; // Reset for next time
 		}
 		break;
