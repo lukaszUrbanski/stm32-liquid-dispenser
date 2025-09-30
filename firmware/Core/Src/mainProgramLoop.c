@@ -85,16 +85,34 @@ void Mpl_TFTUpdateActivity(void)
 	switch(AppData.currentDeviceState)
 	{
 	case DEV_IDLE:
-		Display_PrintIdleScreen();
+
+		if (AppData.displayState == DISP_NEW)
+		{
+			Display_PrintIdleScreen(AppData.volumeToDispense);
+		}
+
+		else if (AppData.displayState == DISP_UPDATE)
+		{
+			Display_UpdateVolume(AppData.volumeToDispense);
+		}
+
+		AppData.displayState = DISP_NONE; // Reset display state after update
 		break;
 
 	case DEV_READY:
 		break;
 
 	case DEV_DISPENSE:
-		Display_PrintDispenseScreen();
+		if (AppData.displayState == DISP_NEW)
+		{
+			Display_PrintDispenseScreen();
+		}
+		else if (AppData.displayState == DISP_UPDATE)
+		{
+			Display_UpdateVolume(AppData.totalDispensedVolume);
+		}
+		AppData.displayState = DISP_NONE; // Reset display state after update
 		break;
-
 	case DEV_ERROR:
 		// Display error screen
 		break;
