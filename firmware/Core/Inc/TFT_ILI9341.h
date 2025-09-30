@@ -122,6 +122,7 @@ void ILI9341_Init(SPI_HandleTypeDef *hspi);
 void ILI9341_SetRotation(uint8_t Rotation);
 void ILI9341_WritePixel(int16_t x, int16_t y, uint16_t color);
 void ILI9341_ClearDisplay(uint16_t Color);
+void ILI9341_ClearArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t Color);
 void ILI9341_DrawImage(uint16_t x, uint16_t y, const uint8_t *img, uint16_t w, uint16_t h);
 
 

@@ -16,8 +16,23 @@ typedef enum
 	BTN_START,
 	BTN_STOP,
 	BTN_MENU,
+	BTN_ENCODER, // Not a button, just for encoder handling
 	BTN_COUNT
-}Btn_id_t;
+}btn_id_t;
+
+typedef enum
+{
+	EV_NONE = 0,
+	EV_CLICK,
+	EV_LEFT,
+	EV_RIGHT
+}btn_event_type_t;
+
+typedef struct
+{
+	btn_event_type_t type;
+	btn_id_t id;
+}btn_event_t;
 
 typedef enum
 {
@@ -28,8 +43,10 @@ typedef enum
 
 void Buttons_Init(void);
 void Buttons_Scan(void);
-bool Button_WasClicked(Btn_id_t id);
+bool Button_WasClicked(btn_id_t id);
 EncoderDir_t EncoderRotated(void);
+bool Buttons_GetEvent(btn_event_t* event);
+
 
 
 #endif /* INC_BUTTONS_H_ */

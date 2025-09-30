@@ -249,6 +249,56 @@ void ILI9341_ClearDisplay(uint16_t Color)
 #endif
 }
 
+void ILI9341_ClearArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t Color)
+{
+	// Set window for whole screen
+		ILI9341_SetAddrWindow(x, y, w, h);
+		// Set RAM writing
+		ILI9341_SendCommand(ILI9341_RAMWR);
+
+	#if (ILI9341_OPTIMIZE_HAL_SP1 == 1)
+		uint32_t Length = w * h;
+
+	#if (ILI9341_USE_CS == 1)
+		ILI9341_CS_LOW;
+	#endif
+		ILI9341_DC_HIGH;	// Data mode
+
+	    while (Length > 0U)
+	    {
+	      /* Wait until TXE flag is set to send data */
+	      if(__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE))
+	      {
+	    	  // Write higher byte of color to DR
+	        *((__IO uint8_t *)&Tft_hspi->Instance->DR) = (Color >> 8);
+	        // Wait for transfer
+	        while(__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_TXE) != SET)
+	        {}
+	        // Write lower byt of color to DR
+	        *((__IO uint8_t *)&Tft_hspi->Instance->DR) = (Color & 0xFF);
+	        // Decrease Lenght
+	        Length--;
+	      }
+	    }
+
+	    // Wait for the end of transfer
+		while(__HAL_SPI_GET_FLAG(Tft_hspi, SPI_FLAG_BSY) != RESET)
+		{
+
+		}
+
+	#if (ILI9341_USE_CS == 1)
+		ILI9341_CS_HIGH;
+	#endif
+	#else
+		for(uint32_t i = 0; i < (w * h); i++)
+		{
+			// Send Color bytes
+			ILI9341_SendData16(Color);
+		}
+	#endif
+}
+
 
 static const uint8_t initcmd[] = {
   0xEF, 3, 0x03, 0x80, 0x02,
