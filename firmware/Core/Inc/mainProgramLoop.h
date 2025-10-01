@@ -48,9 +48,7 @@ typedef struct
 	Disp_State_t 	displayState;
 	uint8_t 		isStageChanged;
 
-	uint8_t 		StartButtonPressed;
-	uint8_t 		StopButtonPressed;
-	uint8_t 		MenuButtonPressed;
+	uint8_t 		pumpState; // 0 - off, 1 - on
 
 
 }AppData_t;
@@ -62,6 +60,7 @@ void Mpl_IdleActivity(void);
 void Mpl_TFTUpdateActivity(void);
 void Mpl_ButtonsScanActivity(void);
 void Mpl_SensorsReadActivity(void);
+void Mpl_PumpControlActivity(void);
 
 
 

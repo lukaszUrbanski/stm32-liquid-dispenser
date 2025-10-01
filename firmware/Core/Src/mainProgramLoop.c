@@ -41,7 +41,7 @@ void MainProgramLoop(void)
 		Mpl_SensorsReadActivity();
 		break;
 	case MPL_PUMP_CONTROL:
-		// Pump control code here
+		Mpl_PumpControlActivity();
 
 		break;
 	default:
@@ -55,6 +55,7 @@ void Mpl_InitActivity(void)
 	// Initialize peripherals, variables, etc.
 	AppData.volumeToDispense = 100; // Default volume to dispense
 	AppData.totalDispensedVolume = 0;
+	AppData.pumpState = 0; // Pump off
 	AppData.displayState = DISP_NEW;
 
 	Display_Init();
@@ -195,6 +196,30 @@ void Mpl_SensorsReadActivity(void)
 				AppData.totalDispensedVolume = 0; // Reset for next time
 				AppData.displayState = DISP_NEW;
 			}
+	}
+	AppData.currentMPLState = MPL_PUMP_CONTROL;
+}
+
+void Mpl_PumpControlActivity(void)
+{
+	// Control pump based on current state
+	if (AppData.currentDeviceState == DEV_DISPENSE)
+	{
+		if (AppData.pumpState == 0)
+		{
+			// Turn on the pump
+			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
+			AppData.pumpState = 1;
+		}
+	}
+	else
+	{
+		if (AppData.pumpState == 1)
+		{
+			// Turn off the pump
+			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
+			AppData.pumpState = 0;
+		}
 	}
 	AppData.currentMPLState = MPL_IDLE;
 }
