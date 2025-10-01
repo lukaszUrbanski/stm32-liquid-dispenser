@@ -31,20 +31,12 @@ typedef struct
 {
 	uint8_t stable; // Stable state after debounce
 	uint8_t sample;	// Current sampled state
+	uint8_t lastEncStable; // Previous stable state
 	uint32_t lastChangeTime;
 	uint32_t debounceCounter;
-	uint8_t click_flag;
 }btn_t;
 
 static btn_t btn_states[BTN_COUNT];
-
-/* -- Encoder states -- */
-uint8_t enc_A;
-uint8_t enc_B;
-uint8_t enc_state;
-uint8_t enc_prewState;
-
-static uint8_t enc_steps = 0;
 
 /* -- Ring buffer for button events -- */
 #define QUEUE_SIZE 16
@@ -62,6 +54,16 @@ static inline void q_push(btn_event_type_t event, btn_id_t id)
 	}
 }
 
+
+/* -- Raw read state of button  -- */
+static inline uint8_t readButton(btn_id_t btn_id)
+{
+	if (btn_id == ENCODER) return ( __HAL_TIM_GET_COUNTER(&htim2)) / 4;
+	return (HAL_GPIO_ReadPin(btn_hw[btn_id].port, btn_hw[btn_id].pin) == GPIO_PIN_RESET) ? 1 : 0;
+}
+
+
+/* -- Public functions -- */
 bool Buttons_GetEvent(btn_event_t* event)
 {
 	if(q_head == q_tail) return false; // Queue empty
@@ -70,14 +72,6 @@ bool Buttons_GetEvent(btn_event_t* event)
 	return true;
 }
 
-/* -- Raw read state of button  -- */
-static inline uint8_t readButton(btn_id_t btn_id)
-{
-	return (HAL_GPIO_ReadPin(btn_hw[btn_id].port, btn_hw[btn_id].pin) == GPIO_PIN_RESET) ? 1 : 0;
-}
-
-
-/* -- Public functions -- */
 uint16_t debugCounter;
 void Buttons_Init(void)
 {
@@ -86,14 +80,8 @@ void Buttons_Init(void)
 		btn_states[i].stable = readButton((btn_id_t)i);
 		btn_states[i].sample = btn_states[i].stable;
 		btn_states[i].lastChangeTime = HAL_GetTick();
-		btn_states[i].click_flag = 0;
+		btn_states[i].lastEncStable = 0;
 	}
-	// Initialize encoder state
-//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-//	enc_state = (enc_A << 1) | enc_B;
-//	enc_prewState = enc_state;
-
 	// Initialize queue
 	q_head = q_tail = 0;
 
@@ -117,14 +105,28 @@ void Buttons_ScanISR(void)
 			if(btn_states[i].stable != btn_states[i].sample)
 			{
 				btn_states[i].stable = btn_states[i].sample;
-				if(btn_states[i].stable == 1)
+				if(i == ENCODER)
 				{
-					btn_states[i].click_flag = 1;
-					q_push(EV_CLICK, i);
+					// Encoder handling
+					if((btn_states[i].stable > btn_states[i].lastEncStable) || (btn_states[i].lastEncStable - btn_states[i].stable > 32768))
+					{
+						q_push(EV_ENC_RIGHT, i);
+					} else
+					{
+						q_push(EV_ENC_LEFT, i);
+					}
+					btn_states[i].lastEncStable = btn_states[i].stable;
 				}
 				else
 				{
-					q_push(EV_NONE, i);
+					if(btn_states[i].stable == 1)
+					{
+						q_push(EV_CLICK, i);
+					}
+					else
+					{
+						q_push(EV_NONE, i);
+					}
 				}
 			}
 		}
@@ -143,91 +145,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		debugCounter++;
 		Buttons_ScanISR();
 	}
-}
-
-
-
-
-void Buttons_Scan(void)
-{
-	uint32_t currentTime = HAL_GetTick();
-	for(uint8_t i = 0; i < BTN_COUNT; i++)
-	{
-		uint8_t currentSample = readButton((btn_id_t)i);
-		if(currentSample != btn_states[i].sample)
-		{
-			btn_states[i].sample = currentSample;
-			btn_states[i].lastChangeTime = currentTime;
-		}
-		else if((currentTime - btn_states[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
-		{
-			if(btn_states[i].stable != btn_states[i].sample)
-			{
-				btn_states[i].stable = btn_states[i].sample;
-				if(btn_states[i].stable == 1)
-				{
-					btn_states[i].click_flag = 1;
-				}
-			}
-		}
-	}
-}
-
-//bool Button_WasClicked(btn_id_t id) {
-//  if (btn_states[id].click_flag) {
-//    btn_states[id].click_flag = 0;
-//    return true;
-//  }
-//  return false;
-//}
-
-EncoderDir_t EncoderRotated(void)
-{
-	uint8_t old_steps = enc_steps;
-	enc_steps =( __HAL_TIM_GET_COUNTER(&htim2)) / 4 ;
-	if(enc_steps != old_steps)
-	{
-		if((enc_steps > old_steps) || (old_steps - enc_steps > 32768))
-		{
-			return ENC_CW;
-		}
-		else
-		{
-			return ENC_CCW;
-		}
-	}
-	return ENC_NONE;
-
-//	//uint32_t currentTime = HAL_GetTick();
-//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-//	enc_state = (enc_A << 1) | enc_B;
-//
-//
-//	if(enc_state != enc_prewState)
-//	{
-//		// Simple state machine for quadrature encoder
-//		if((enc_prewState == 0b00 && enc_state == 0b01) ||
-//		   (enc_prewState == 0b01 && enc_state == 0b11) ||
-//		   (enc_prewState == 0b11 && enc_state == 0b10) ||
-//		   (enc_prewState == 0b10 && enc_state == 0b00))
-//		{
-//			// Clockwise rotation
-//			// Handle clockwise rotation event here
-//			return ENC_CW;
-//		}
-//		else if((enc_prewState == 0b00 && enc_state == 0b10) ||
-//				(enc_prewState == 0b10 && enc_state == 0b11) ||
-//				(enc_prewState == 0b11 && enc_state == 0b01) ||
-//				(enc_prewState == 0b01 && enc_state == 0b00))
-//		{
-//			// Counter-clockwise rotation
-//			// Handle counter-clockwise rotation event here
-//			return ENC_CCW;
-//		}
-//		enc_prewState = enc_state;
-//	}
-//	return ENC_NONE;
 }
 
 

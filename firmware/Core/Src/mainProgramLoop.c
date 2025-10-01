@@ -128,50 +128,48 @@ void Mpl_ButtonsScanActivity(void)
 {
 	// Buttons_Scan();
 
-	Buttons_GetEvent(&lastEvent);
-	switch (AppData.currentDeviceState)
+	if(Buttons_GetEvent(&lastEvent))
 	{
-	case DEV_IDLE:
-		EncoderDir_t Rotation = EncoderRotated();
-
-		if (Rotation == ENC_CW) {
-			AppData.volumeToDispense += 10;
-			AppData.displayState = DISP_UPDATE;
-		} else if (Rotation == ENC_CCW) {
-			if (AppData.volumeToDispense >= 10) {
-				AppData.volumeToDispense -= 10;
+	// Handle button events based on current device state
+		switch (AppData.currentDeviceState)
+		{
+		case DEV_IDLE:
+			if (lastEvent.id == ENCODER && lastEvent.type == EV_ENC_RIGHT) {
+				AppData.volumeToDispense += 10;
 				AppData.displayState = DISP_UPDATE;
+			} else if (lastEvent.id == ENCODER && lastEvent.type == EV_ENC_LEFT) {
+				if (AppData.volumeToDispense >= 10) {
+					AppData.volumeToDispense -= 10;
+					AppData.displayState = DISP_UPDATE;
+				}
 			}
+			if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
+
+				AppData.currentDeviceState = DEV_DISPENSE;
+
+				AppData.displayState = DISP_NEW;
+				dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
+			}
+			break;
+		case DEV_READY:
+			// Ready state code here
+			break;
+		case DEV_DISPENSE:
+			if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
+				AppData.currentDeviceState = DEV_IDLE;
+				AppData.displayState = DISP_NEW;
+				AppData.totalDispensedVolume = 0; // Reset for next time
+			}
+			break;
+
+		case DEV_ERROR:
+				// Error handling code here
+			break;
+		default:
+			AppData.currentDeviceState = DEV_ERROR;
+			break;
 		}
-
-		if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
-
-			AppData.currentDeviceState = DEV_DISPENSE;
-
-			AppData.displayState = DISP_NEW;
-			dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
-			//AppData.StartButtonPressed = 0; // Reset button state
-		}
-		break;
-	case DEV_READY:
-		// Ready state code here
-		break;
-	case DEV_DISPENSE:
-		if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
-			AppData.currentDeviceState = DEV_IDLE;
-			AppData.displayState = DISP_NEW;
-			AppData.totalDispensedVolume = 0; // Reset for next time
-		}
-		break;
-
-	case DEV_ERROR:
-			// Error handling code here
-		break;
-	default:
-		AppData.currentDeviceState = DEV_ERROR;
-		break;
 	}
-
 	AppData.currentMPLState = MPL_SENSORS_READ;
 }
 
