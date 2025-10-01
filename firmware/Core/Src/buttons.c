@@ -44,6 +44,8 @@ uint8_t enc_B;
 uint8_t enc_state;
 uint8_t enc_prewState;
 
+static uint8_t enc_steps = 0;
+
 /* -- Ring buffer for button events -- */
 #define QUEUE_SIZE 16
 static btn_event_t eventQueue[QUEUE_SIZE];
@@ -87,15 +89,16 @@ void Buttons_Init(void)
 		btn_states[i].click_flag = 0;
 	}
 	// Initialize encoder state
-	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-	enc_state = (enc_A << 1) | enc_B;
-	enc_prewState = enc_state;
+//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+//	enc_state = (enc_A << 1) | enc_B;
+//	enc_prewState = enc_state;
 
 	// Initialize queue
 	q_head = q_tail = 0;
 
 	HAL_TIM_Base_Start_IT(&htim3); // Start timer for encoder if needed
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL); // Start encoder interface
 	debugCounter = 0;
 }
 
@@ -170,46 +173,61 @@ void Buttons_Scan(void)
 	}
 }
 
-bool Button_WasClicked(btn_id_t id) {
-  if (btn_states[id].click_flag) {
-    btn_states[id].click_flag = 0;
-    return true;
-  }
-  return false;
-}
+//bool Button_WasClicked(btn_id_t id) {
+//  if (btn_states[id].click_flag) {
+//    btn_states[id].click_flag = 0;
+//    return true;
+//  }
+//  return false;
+//}
 
 EncoderDir_t EncoderRotated(void)
 {
-	//uint32_t currentTime = HAL_GetTick();
-	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
-	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
-	enc_state = (enc_A << 1) | enc_B;
-
-
-	if(enc_state != enc_prewState)
+	uint8_t old_steps = enc_steps;
+	enc_steps =( __HAL_TIM_GET_COUNTER(&htim2)) / 4 ;
+	if(enc_steps != old_steps)
 	{
-		// Simple state machine for quadrature encoder
-		if((enc_prewState == 0b00 && enc_state == 0b01) ||
-		   (enc_prewState == 0b01 && enc_state == 0b11) ||
-		   (enc_prewState == 0b11 && enc_state == 0b10) ||
-		   (enc_prewState == 0b10 && enc_state == 0b00))
+		if((enc_steps > old_steps) || (old_steps - enc_steps > 32768))
 		{
-			// Clockwise rotation
-			// Handle clockwise rotation event here
 			return ENC_CW;
 		}
-		else if((enc_prewState == 0b00 && enc_state == 0b10) ||
-				(enc_prewState == 0b10 && enc_state == 0b11) ||
-				(enc_prewState == 0b11 && enc_state == 0b01) ||
-				(enc_prewState == 0b01 && enc_state == 0b00))
+		else
 		{
-			// Counter-clockwise rotation
-			// Handle counter-clockwise rotation event here
 			return ENC_CCW;
 		}
-		enc_prewState = enc_state;
 	}
 	return ENC_NONE;
+
+//	//uint32_t currentTime = HAL_GetTick();
+//	enc_A = HAL_GPIO_ReadPin(ENC_A_GPIO_Port, ENC_A_Pin);
+//	enc_B = HAL_GPIO_ReadPin(ENC_B_GPIO_Port, ENC_B_Pin);
+//	enc_state = (enc_A << 1) | enc_B;
+//
+//
+//	if(enc_state != enc_prewState)
+//	{
+//		// Simple state machine for quadrature encoder
+//		if((enc_prewState == 0b00 && enc_state == 0b01) ||
+//		   (enc_prewState == 0b01 && enc_state == 0b11) ||
+//		   (enc_prewState == 0b11 && enc_state == 0b10) ||
+//		   (enc_prewState == 0b10 && enc_state == 0b00))
+//		{
+//			// Clockwise rotation
+//			// Handle clockwise rotation event here
+//			return ENC_CW;
+//		}
+//		else if((enc_prewState == 0b00 && enc_state == 0b10) ||
+//				(enc_prewState == 0b10 && enc_state == 0b11) ||
+//				(enc_prewState == 0b11 && enc_state == 0b01) ||
+//				(enc_prewState == 0b01 && enc_state == 0b00))
+//		{
+//			// Counter-clockwise rotation
+//			// Handle counter-clockwise rotation event here
+//			return ENC_CCW;
+//		}
+//		enc_prewState = enc_state;
+//	}
+//	return ENC_NONE;
 }
 
 
