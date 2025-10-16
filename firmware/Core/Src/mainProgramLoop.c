@@ -7,7 +7,10 @@
 
 
 #include "mainProgramLoop.h"
-
+#include "tim.h"
+#include "usart.h"
+#include "string.h"
+#include "stdio.h"
 
 AppData_t AppData;
 uint32_t dispense_time_stamp = 0; // for simulate dispensing
@@ -60,6 +63,8 @@ void Mpl_InitActivity(void)
 
 	Display_Init();
 	Buttons_Init();
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
 	AppData.currentMPLState = MPL_IDLE;
 	AppData.currentDeviceState = DEV_IDLE;
@@ -177,15 +182,23 @@ void Mpl_ButtonsScanActivity(void)
 void Mpl_SensorsReadActivity(void)
 {
 	// Code for reading sensors, if any
+	uint8_t Msg[32];
+	uint32_t flowCounter;
+
 
 
 	//------ Simulate sensor reading here ------//
 
 	if(AppData.currentDeviceState == DEV_DISPENSE)
 	{
+
+		flowCounter = __HAL_TIM_GET_COUNTER(&htim4);
+
 		// Simulate reading a flow sensor or similar
 		if (HAL_GetTick() - dispense_time_stamp >= 500){
 				dispense_time_stamp = HAL_GetTick();
+				sprintf(Msg, "FLOW counter = %ld \n\r", flowCounter = __HAL_TIM_GET_COUNTER(&htim4));
+				HAL_UART_Transmit(&huart2, Msg, strlen(Msg), 1000);
 				AppData.totalDispensedVolume += 10; // Increment dispensed volume
 				AppData.displayState = DISP_UPDATE; // Mark display for update
 				// Simulate time taken to dispense
