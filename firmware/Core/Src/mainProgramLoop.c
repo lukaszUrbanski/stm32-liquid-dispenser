@@ -15,6 +15,7 @@
 AppData_t AppData;
 uint32_t dispense_time_stamp = 0; // for simulate dispensing
 btn_event_t lastEvent;
+uint32_t repeat_time_stamp;
 ///////////////////////
 // Main Program Loop //
 ///////////////////////
@@ -68,6 +69,8 @@ void Mpl_InitActivity(void)
 
 	AppData.currentMPLState = MPL_IDLE;
 	AppData.currentDeviceState = DEV_IDLE;
+
+	repeat_time_stamp = HAL_GetTick();
 }
 
 void Mpl_IdleActivity(void)
@@ -134,16 +137,20 @@ void Mpl_ButtonsScanActivity(void)
 {
 	// Buttons_Scan();
 
+
 	if(Buttons_GetEvent(&lastEvent))
 	{
 	// Handle button events based on current device state
 		switch (AppData.currentDeviceState)
 		{
 		case DEV_IDLE:
-			if (lastEvent.id == BTN_PLUS && lastEvent.type == EV_CLICK) {
+			if (lastEvent.id == BTN_PLUS && (lastEvent.type == EV_CLICK || lastEvent.type == EV_HOLD))
+			{
 				AppData.volumeToDispense += 10;
 				AppData.displayState = DISP_UPDATE;
-			} else if (lastEvent.id == BTN_MINUS && lastEvent.type == EV_CLICK) {
+
+
+			} else if (lastEvent.id == BTN_MINUS && (lastEvent.type == EV_CLICK || lastEvent.type == EV_HOLD)) {
 				if (AppData.volumeToDispense >= 10) {
 					AppData.volumeToDispense -= 10;
 					AppData.displayState = DISP_UPDATE;

@@ -11,6 +11,7 @@
 
 #define DEBOUNCE_TIME_MS 20
 #define HOLD_TIME_MS 600
+#define REPEAT_TIME_MS 500
 
 /* -- Button hardware configuration -- */
 typedef struct
@@ -30,12 +31,12 @@ static const btn_hw_t btn_hw[BTN_COUNT] =
 /* -- Button states -- */
 typedef struct
 {
-	uint8_t stable; // Stable state after debounce
-	uint8_t sample;	// Current sampled state
-	uint32_t lastChangeTime;
-	uint32_t debounceCounter;
-	uint32_t pressStartTime;
-	uint8_t holdReported;
+	uint8_t 	stable; // Stable state after debounce
+	uint8_t 	sample;	// Current sampled state
+	uint32_t 	lastChangeTime;
+	uint32_t 	debounceCounter;
+	uint32_t 	pressStartTime;
+	uint32_t 	repeatTimeStamp;
 }btn_t;
 
 static btn_t btn_states[BTN_COUNT];
@@ -91,7 +92,7 @@ void Buttons_Init(void)
 
 void Buttons_ScanISR(void)
 {
-	uint32_t now = HAL_GetTick();
+ 	uint32_t now = HAL_GetTick();
 
 	for(btn_id_t i = 0; i < BTN_COUNT; i++)
 	{
@@ -112,34 +113,33 @@ void Buttons_ScanISR(void)
 				if(btn_states[i].stable == 1)
 				{
 					btn_states[i].pressStartTime = now;
-					btn_states[i].holdReported = 0;
+					btn_states[i].repeatTimeStamp = now;
 
 				}
 				else
 				{
 					uint32_t pressDur = (btn_states[i].pressStartTime) ? (now - btn_states[i].pressStartTime) : 0;
 
-					 if(!btn_states[i].holdReported && pressDur < HOLD_TIME_MS)
+					 if(pressDur < HOLD_TIME_MS)
 					 {
-					   // Krótki klik (CLICK) – jak dotąd
+					   // short click
 						 q_push(EV_CLICK, i);
 					 }
-					 //Zawsze wyślij RELEASE
+					 //always send RELEASE
 					 q_push(EV_RELEASE, i);
 
-					 // Czyścimy kontekst
+					 // clear context
 					 btn_states[i].pressStartTime = 0;
-					 btn_states[i].holdReported   = 0;
 				}
 			}
 		}
-		// --- DETEKCJA HOLD (po ustabilizowanym naciśnięciu) ---
-		if(btn_states[i].stable == 1 && !btn_states[i].holdReported)
+		// --- HOLD DETECTION (AFTER DEBOUNCE) ---
+		if(btn_states[i].stable == 1)
 		{
-			if((now - btn_states[i].pressStartTime) >= HOLD_TIME_MS)
+			if((now - btn_states[i].pressStartTime) >= HOLD_TIME_MS && (now - btn_states[i].repeatTimeStamp) >= REPEAT_TIME_MS)
 			{
+				btn_states[i].repeatTimeStamp = now;
 				q_push(EV_HOLD, i);
-				btn_states[i].holdReported = 1; // tylko raz na jedno naciśnięcie
 			}
 		}
 	}
@@ -147,12 +147,12 @@ void Buttons_ScanISR(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance == TIM3) // Encoder timer
+	if(htim->Instance == TIM3)
 	{
 		if(debugCounter >= 100) // 1 second at 0.5ms interval
 		{
 			debugCounter = 0;
-			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin); // For debug
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin); // heart beat
 		}
 		debugCounter++;
 		Buttons_ScanISR();
