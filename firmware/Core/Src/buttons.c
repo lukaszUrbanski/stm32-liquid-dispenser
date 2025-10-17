@@ -21,8 +21,8 @@ typedef struct
 static const btn_hw_t btn_hw[BTN_COUNT -1] =
 {
 	[BTN_START] = {BTN_START_GPIO_Port, BTN_START_Pin}, // BTN_START
-	[BTN_STOP] = {BTN_STOP_GPIO_Port, BTN_STOP_Pin}, // BTN_STOP
-	[BTN_MENU] = {BTN_MENU_GPIO_Port, BTN_MENU_Pin}  // BTN_MENU
+	[BTN_MINUS] = {BTN_MINUS_GPIO_Port, BTN_MINUS_Pin}, // BTN_STOP
+	[BTN_PLUS] = {BTN_PLUS_GPIO_Port, BTN_PLUS_Pin}  // BTN_MENU
 
 };
 

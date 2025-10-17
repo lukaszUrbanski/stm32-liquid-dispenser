@@ -14,8 +14,8 @@
 typedef enum
 {
 	BTN_START,
-	BTN_STOP,
-	BTN_MENU,
+	BTN_MINUS,
+	BTN_PLUS,
 	ENCODER, // Not a button, just for encoder handling
 	BTN_COUNT
 }btn_id_t;

@@ -72,8 +72,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN_START_Pin BTN_STOP_Pin BTN_MENU_Pin */
-  GPIO_InitStruct.Pin = BTN_START_Pin|BTN_STOP_Pin|BTN_MENU_Pin;
+  /*Configure GPIO pins : BTN_START_Pin BTN_MINUS_Pin BTN_PLUS_Pin */
+  GPIO_InitStruct.Pin = BTN_START_Pin|BTN_MINUS_Pin|BTN_PLUS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);

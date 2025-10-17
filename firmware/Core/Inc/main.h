@@ -63,10 +63,10 @@ void Error_Handler(void);
 #define LD3_GPIO_Port GPIOC
 #define BTN_START_Pin GPIO_PIN_1
 #define BTN_START_GPIO_Port GPIOC
-#define BTN_STOP_Pin GPIO_PIN_2
-#define BTN_STOP_GPIO_Port GPIOC
-#define BTN_MENU_Pin GPIO_PIN_3
-#define BTN_MENU_GPIO_Port GPIOC
+#define BTN_MINUS_Pin GPIO_PIN_2
+#define BTN_MINUS_GPIO_Port GPIOC
+#define BTN_PLUS_Pin GPIO_PIN_3
+#define BTN_PLUS_GPIO_Port GPIOC
 #define ENC_A_Pin GPIO_PIN_0
 #define ENC_A_GPIO_Port GPIOA
 #define ENC_B_Pin GPIO_PIN_1

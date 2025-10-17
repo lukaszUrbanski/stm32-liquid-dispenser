@@ -140,10 +140,10 @@ void Mpl_ButtonsScanActivity(void)
 		switch (AppData.currentDeviceState)
 		{
 		case DEV_IDLE:
-			if (lastEvent.id == ENCODER && lastEvent.type == EV_ENC_RIGHT) {
+			if (lastEvent.id == BTN_PLUS && lastEvent.type == EV_CLICK) {
 				AppData.volumeToDispense += 10;
 				AppData.displayState = DISP_UPDATE;
-			} else if (lastEvent.id == ENCODER && lastEvent.type == EV_ENC_LEFT) {
+			} else if (lastEvent.id == BTN_MINUS && lastEvent.type == EV_CLICK) {
 				if (AppData.volumeToDispense >= 10) {
 					AppData.volumeToDispense -= 10;
 					AppData.displayState = DISP_UPDATE;
@@ -161,7 +161,7 @@ void Mpl_ButtonsScanActivity(void)
 			// Ready state code here
 			break;
 		case DEV_DISPENSE:
-			if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
+			if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
 				AppData.currentDeviceState = DEV_IDLE;
 				AppData.displayState = DISP_NEW;
 				AppData.totalDispensedVolume = 0; // Reset for next time
@@ -182,8 +182,8 @@ void Mpl_ButtonsScanActivity(void)
 void Mpl_SensorsReadActivity(void)
 {
 	// Code for reading sensors, if any
-	uint8_t Msg[32];
-	uint32_t flowCounter;
+//	uint8_t Msg[32];
+//	uint32_t flowCounter;
 
 
 
@@ -192,13 +192,13 @@ void Mpl_SensorsReadActivity(void)
 	if(AppData.currentDeviceState == DEV_DISPENSE)
 	{
 
-		flowCounter = __HAL_TIM_GET_COUNTER(&htim4);
+		//flowCounter = __HAL_TIM_GET_COUNTER(&htim4);
 
 		// Simulate reading a flow sensor or similar
 		if (HAL_GetTick() - dispense_time_stamp >= 500){
 				dispense_time_stamp = HAL_GetTick();
-				sprintf(Msg, "FLOW counter = %ld \n\r", flowCounter = __HAL_TIM_GET_COUNTER(&htim4));
-				HAL_UART_Transmit(&huart2, Msg, strlen(Msg), 1000);
+//				sprintf(Msg, "FLOW counter = %ld \n\r", flowCounter = __HAL_TIM_GET_COUNTER(&htim4));
+//				HAL_UART_Transmit(&huart2, Msg, strlen(Msg), 1000);
 				AppData.totalDispensedVolume += 10; // Increment dispensed volume
 				AppData.displayState = DISP_UPDATE; // Mark display for update
 				// Simulate time taken to dispense
