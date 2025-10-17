@@ -10,6 +10,7 @@
 #include "tim.h"
 
 #define DEBOUNCE_TIME_MS 20
+#define HOLD_TIME_MS 600
 
 /* -- Button hardware configuration -- */
 typedef struct
@@ -31,9 +32,10 @@ typedef struct
 {
 	uint8_t stable; // Stable state after debounce
 	uint8_t sample;	// Current sampled state
-	uint8_t lastEncStable; // Previous stable state
 	uint32_t lastChangeTime;
 	uint32_t debounceCounter;
+	uint32_t pressStartTime;
+	uint8_t holdReported;
 }btn_t;
 
 static btn_t btn_states[BTN_COUNT];
@@ -79,7 +81,6 @@ void Buttons_Init(void)
 		btn_states[i].stable = readButton((btn_id_t)i);
 		btn_states[i].sample = btn_states[i].stable;
 		btn_states[i].lastChangeTime = HAL_GetTick();
-		btn_states[i].lastEncStable = 0;
 	}
 	// Initialize queue
 	q_head = q_tail = 0;
@@ -90,29 +91,55 @@ void Buttons_Init(void)
 
 void Buttons_ScanISR(void)
 {
+	uint32_t now = HAL_GetTick();
+
 	for(btn_id_t i = 0; i < BTN_COUNT; i++)
 	{
 		uint8_t currentSample = readButton(i);
+
 		if(currentSample != btn_states[i].sample)
 		{
 			btn_states[i].sample = currentSample;
 			btn_states[i].lastChangeTime = HAL_GetTick();
 		}
-		else if((HAL_GetTick() - btn_states[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
+		else if((now - btn_states[i].lastChangeTime) >= DEBOUNCE_TIME_MS)
 		{
 			if(btn_states[i].stable != btn_states[i].sample)
 			{
+
 				btn_states[i].stable = btn_states[i].sample;
 
 				if(btn_states[i].stable == 1)
 				{
-					q_push(EV_CLICK, i);
+					btn_states[i].pressStartTime = now;
+					btn_states[i].holdReported = 0;
+
 				}
 				else
 				{
-					q_push(EV_NONE, i);
-				}
+					uint32_t pressDur = (btn_states[i].pressStartTime) ? (now - btn_states[i].pressStartTime) : 0;
 
+					 if(!btn_states[i].holdReported && pressDur < HOLD_TIME_MS)
+					 {
+					   // Krótki klik (CLICK) – jak dotąd
+						 q_push(EV_CLICK, i);
+					 }
+					 //Zawsze wyślij RELEASE
+					 q_push(EV_RELEASE, i);
+
+					 // Czyścimy kontekst
+					 btn_states[i].pressStartTime = 0;
+					 btn_states[i].holdReported   = 0;
+				}
+			}
+		}
+		// --- DETEKCJA HOLD (po ustabilizowanym naciśnięciu) ---
+		if(btn_states[i].stable == 1 && !btn_states[i].holdReported)
+		{
+			if((now - btn_states[i].pressStartTime) >= HOLD_TIME_MS)
+			{
+				q_push(EV_HOLD, i);
+				btn_states[i].holdReported = 1; // tylko raz na jedno naciśnięcie
 			}
 		}
 	}
