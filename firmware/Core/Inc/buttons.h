@@ -16,7 +16,6 @@ typedef enum
 	BTN_START,
 	BTN_MINUS,
 	BTN_PLUS,
-	ENCODER, // Not a button, just for encoder handling
 	BTN_COUNT
 }btn_id_t;
 
@@ -24,8 +23,8 @@ typedef enum
 {
 	EV_NONE = 0,
 	EV_CLICK,
-	EV_ENC_LEFT,
-	EV_ENC_RIGHT
+	EV_HOLD,
+	EV_RELEASE
 }btn_event_type_t;
 
 typedef struct

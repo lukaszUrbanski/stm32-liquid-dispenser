@@ -18,7 +18,7 @@ typedef struct
 	uint16_t pin;
 }btn_hw_t;
 
-static const btn_hw_t btn_hw[BTN_COUNT -1] =
+static const btn_hw_t btn_hw[BTN_COUNT] =
 {
 	[BTN_START] = {BTN_START_GPIO_Port, BTN_START_Pin}, // BTN_START
 	[BTN_MINUS] = {BTN_MINUS_GPIO_Port, BTN_MINUS_Pin}, // BTN_STOP
@@ -58,7 +58,6 @@ static inline void q_push(btn_event_type_t event, btn_id_t id)
 /* -- Raw read state of button  -- */
 static inline uint8_t readButton(btn_id_t btn_id)
 {
-	if (btn_id == ENCODER) return ( __HAL_TIM_GET_COUNTER(&htim2)) / 4;
 	return (HAL_GPIO_ReadPin(btn_hw[btn_id].port, btn_hw[btn_id].pin) == GPIO_PIN_RESET) ? 1 : 0;
 }
 
@@ -86,7 +85,6 @@ void Buttons_Init(void)
 	q_head = q_tail = 0;
 
 	HAL_TIM_Base_Start_IT(&htim3); // Start timer for encoder if needed
-	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL); // Start encoder interface
 	debugCounter = 0;
 }
 
@@ -105,29 +103,16 @@ void Buttons_ScanISR(void)
 			if(btn_states[i].stable != btn_states[i].sample)
 			{
 				btn_states[i].stable = btn_states[i].sample;
-				if(i == ENCODER)
+
+				if(btn_states[i].stable == 1)
 				{
-					// Encoder handling
-					if((btn_states[i].stable > btn_states[i].lastEncStable) || (btn_states[i].lastEncStable - btn_states[i].stable > 32768))
-					{
-						q_push(EV_ENC_RIGHT, i);
-					} else
-					{
-						q_push(EV_ENC_LEFT, i);
-					}
-					btn_states[i].lastEncStable = btn_states[i].stable;
+					q_push(EV_CLICK, i);
 				}
 				else
 				{
-					if(btn_states[i].stable == 1)
-					{
-						q_push(EV_CLICK, i);
-					}
-					else
-					{
-						q_push(EV_NONE, i);
-					}
+					q_push(EV_NONE, i);
 				}
+
 			}
 		}
 	}
