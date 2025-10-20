@@ -12,6 +12,7 @@
 #include "string.h"
 #include "stdio.h"
 
+
 AppData_t AppData;
 uint32_t dispense_time_stamp = 0; // for simulate dispensing
 btn_event_t lastEvent;
@@ -64,7 +65,7 @@ void Mpl_InitActivity(void)
 
 	Display_Init();
 	Buttons_Init();
-
+	FLOW_SENSOR_Init();
 
 
 	AppData.currentMPLState = MPL_IDLE;

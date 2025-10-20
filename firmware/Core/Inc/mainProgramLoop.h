@@ -11,6 +11,7 @@
 #include "main.h"
 #include "display.h"
 #include "buttons.h"
+#include "sensors.h"
 
 typedef enum
 {
