@@ -65,7 +65,7 @@ void Mpl_InitActivity(void)
 	Display_Init();
 	Buttons_Init();
 
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+
 
 	AppData.currentMPLState = MPL_IDLE;
 	AppData.currentDeviceState = DEV_IDLE;
