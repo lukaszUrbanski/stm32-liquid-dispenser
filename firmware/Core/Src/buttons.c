@@ -86,7 +86,7 @@ void Buttons_Init(void)
 	// Initialize queue
 	q_head = q_tail = 0;
 
-	HAL_TIM_Base_Start_IT(&htim3); // Start timer for encoder if needed
+	HAL_TIM_Base_Start_IT(&htim4); // Start timer for encoder if needed
 	debugCounter = 0;
 }
 
@@ -147,7 +147,7 @@ void Buttons_ScanISR(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance == TIM3)
+	if(htim->Instance == TIM4)
 	{
 		if(debugCounter >= 100) // 1 second at 0.5ms interval
 		{
