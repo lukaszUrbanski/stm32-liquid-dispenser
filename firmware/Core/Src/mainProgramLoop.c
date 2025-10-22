@@ -12,6 +12,7 @@
 #include "string.h"
 #include "stdio.h"
 
+#define DISPLAY_REFRESH_TIME_MS 200
 
 AppData_t AppData;
 uint32_t dispense_time_stamp = 0; // for simulate dispensing
@@ -116,10 +117,14 @@ void Mpl_TFTUpdateActivity(void)
 		if (AppData.displayState == DISP_NEW)
 		{
 			Display_PrintDispenseScreen();
+			AppData.lastDisplayChangeTime = HAL_GetTick();
 		}
 		else if (AppData.displayState == DISP_UPDATE)
 		{
-			Display_UpdateVolume(AppData.totalDispensedVolume);
+			if(HAL_GetTick() >= (AppData.lastDisplayChangeTime + DISPLAY_REFRESH_TIME_MS)){
+				AppData.lastDisplayChangeTime = HAL_GetTick();
+				Display_UpdateVolume(AppData.totalDispensedVolume);
+			}
 		}
 		AppData.displayState = DISP_NONE; // Reset display state after update
 		break;
