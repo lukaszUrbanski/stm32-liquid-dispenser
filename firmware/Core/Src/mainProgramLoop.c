@@ -7,11 +7,17 @@
 
 
 #include "mainProgramLoop.h"
+#include "tim.h"
+#include "usart.h"
+#include "string.h"
+#include "stdio.h"
 
+#define DISPLAY_REFRESH_TIME_MS 200
 
 AppData_t AppData;
 uint32_t dispense_time_stamp = 0; // for simulate dispensing
 btn_event_t lastEvent;
+uint32_t repeat_time_stamp;
 ///////////////////////
 // Main Program Loop //
 ///////////////////////
@@ -41,7 +47,7 @@ void MainProgramLoop(void)
 		Mpl_SensorsReadActivity();
 		break;
 	case MPL_PUMP_CONTROL:
-		// Pump control code here
+		Mpl_PumpControlActivity();
 
 		break;
 	default:
@@ -55,13 +61,18 @@ void Mpl_InitActivity(void)
 	// Initialize peripherals, variables, etc.
 	AppData.volumeToDispense = 100; // Default volume to dispense
 	AppData.totalDispensedVolume = 0;
+	AppData.pumpState = 0; // Pump off
 	AppData.displayState = DISP_NEW;
 
 	Display_Init();
 	Buttons_Init();
+	FLOW_SENSOR_Init();
+
 
 	AppData.currentMPLState = MPL_IDLE;
 	AppData.currentDeviceState = DEV_IDLE;
+
+	repeat_time_stamp = HAL_GetTick();
 }
 
 void Mpl_IdleActivity(void)
@@ -106,10 +117,14 @@ void Mpl_TFTUpdateActivity(void)
 		if (AppData.displayState == DISP_NEW)
 		{
 			Display_PrintDispenseScreen();
+			AppData.lastDisplayChangeTime = HAL_GetTick();
 		}
 		else if (AppData.displayState == DISP_UPDATE)
 		{
-			Display_UpdateVolume(AppData.totalDispensedVolume);
+			if(HAL_GetTick() >= (AppData.lastDisplayChangeTime + DISPLAY_REFRESH_TIME_MS)){
+				AppData.lastDisplayChangeTime = HAL_GetTick();
+				Display_UpdateVolume(AppData.totalDispensedVolume);
+			}
 		}
 		AppData.displayState = DISP_NONE; // Reset display state after update
 		break;
@@ -128,75 +143,97 @@ void Mpl_ButtonsScanActivity(void)
 {
 	// Buttons_Scan();
 
-	Buttons_GetEvent(&lastEvent);
-	switch (AppData.currentDeviceState)
+
+	if(Buttons_GetEvent(&lastEvent))
 	{
-	case DEV_IDLE:
-		EncoderDir_t Rotation = EncoderRotated();
-
-		if (Rotation == ENC_CW) {
-			AppData.volumeToDispense += 10;
-			AppData.displayState = DISP_UPDATE;
-		} else if (Rotation == ENC_CCW) {
-			if (AppData.volumeToDispense >= 10) {
-				AppData.volumeToDispense -= 10;
+	// Handle button events based on current device state
+		switch (AppData.currentDeviceState)
+		{
+		case DEV_IDLE:
+			if (lastEvent.id == BTN_PLUS && (lastEvent.type == EV_CLICK || lastEvent.type == EV_HOLD))
+			{
+				AppData.volumeToDispense += 10;
 				AppData.displayState = DISP_UPDATE;
+
+
+			} else if (lastEvent.id == BTN_MINUS && (lastEvent.type == EV_CLICK || lastEvent.type == EV_HOLD)) {
+				if (AppData.volumeToDispense >= 10) {
+					AppData.volumeToDispense -= 10;
+					AppData.displayState = DISP_UPDATE;
+				}
 			}
+			if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
+
+				AppData.currentDeviceState = DEV_DISPENSE;
+
+				AppData.displayState = DISP_NEW;
+				dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
+				FLOW_SENSOR_ResetValue();
+			}
+			break;
+		case DEV_READY:
+			// Ready state code here
+			break;
+		case DEV_DISPENSE:
+			if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
+				AppData.currentDeviceState = DEV_IDLE;
+				AppData.displayState = DISP_NEW;
+				AppData.totalDispensedVolume = 0; // Reset for next time
+			}
+			break;
+
+		case DEV_ERROR:
+				// Error handling code here
+			break;
+		default:
+			AppData.currentDeviceState = DEV_ERROR;
+			break;
 		}
-
-		if (lastEvent.id == BTN_START && lastEvent.type == EV_CLICK) {
-
-			AppData.currentDeviceState = DEV_DISPENSE;
-
-			AppData.displayState = DISP_NEW;
-			dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
-			//AppData.StartButtonPressed = 0; // Reset button state
-		}
-		break;
-	case DEV_READY:
-		// Ready state code here
-		break;
-	case DEV_DISPENSE:
-		if (lastEvent.id == BTN_STOP && lastEvent.type == EV_CLICK) {
-			AppData.currentDeviceState = DEV_IDLE;
-			AppData.displayState = DISP_NEW;
-			AppData.totalDispensedVolume = 0; // Reset for next time
-		}
-		break;
-
-	case DEV_ERROR:
-			// Error handling code here
-		break;
-	default:
-		AppData.currentDeviceState = DEV_ERROR;
-		break;
 	}
-
 	AppData.currentMPLState = MPL_SENSORS_READ;
 }
 
 void Mpl_SensorsReadActivity(void)
 {
-	// Code for reading sensors, if any
-
-
-	//------ Simulate sensor reading here ------//
+	//------ sensor reading here ------//
 
 	if(AppData.currentDeviceState == DEV_DISPENSE)
 	{
-		// Simulate reading a flow sensor or similar
-		if (HAL_GetTick() - dispense_time_stamp >= 500){
-				dispense_time_stamp = HAL_GetTick();
-				AppData.totalDispensedVolume += 10; // Increment dispensed volume
-				AppData.displayState = DISP_UPDATE; // Mark display for update
-				// Simulate time taken to dispense
+		if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
+		{
+			AppData.currentDeviceState = DEV_IDLE;
+			AppData.totalDispensedVolume = 0; // Reset for next time
+
+			AppData.displayState = DISP_NEW;
+		}
+		else{
+			AppData.totalDispensedVolume = FLOW_SENSOR_GetValue_ml();
+			AppData.displayState = DISP_UPDATE; // Mark display for update
 			}
-			if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
-			{
-				AppData.currentDeviceState = DEV_IDLE;
-				AppData.totalDispensedVolume = 0; // Reset for next time
-				AppData.displayState = DISP_NEW;
-			}
+	}
+	AppData.currentMPLState = MPL_PUMP_CONTROL;
+}
+
+void Mpl_PumpControlActivity(void)
+{
+	// Control pump based on current state
+	if (AppData.currentDeviceState == DEV_DISPENSE)
+	{
+		if (AppData.pumpState == 0)
+		{
+			// Turn on the pump
+			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
+			AppData.pumpState = 1;
+		}
+	}
+	else
+	{
+		if (AppData.pumpState == 1)
+		{
+			// Turn off the pump
+			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
+			AppData.pumpState = 0;
+		}
 	}
 	AppData.currentMPLState = MPL_IDLE;
 }

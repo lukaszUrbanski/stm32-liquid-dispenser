@@ -63,14 +63,12 @@ void Error_Handler(void);
 #define LD3_GPIO_Port GPIOC
 #define BTN_START_Pin GPIO_PIN_1
 #define BTN_START_GPIO_Port GPIOC
-#define BTN_STOP_Pin GPIO_PIN_2
-#define BTN_STOP_GPIO_Port GPIOC
-#define BTN_MENU_Pin GPIO_PIN_3
-#define BTN_MENU_GPIO_Port GPIOC
-#define ENC_A_Pin GPIO_PIN_0
-#define ENC_A_GPIO_Port GPIOA
-#define ENC_B_Pin GPIO_PIN_1
-#define ENC_B_GPIO_Port GPIOA
+#define BTN_MINUS_Pin GPIO_PIN_2
+#define BTN_MINUS_GPIO_Port GPIOC
+#define BTN_PLUS_Pin GPIO_PIN_3
+#define BTN_PLUS_GPIO_Port GPIOC
+#define PUMP_Pin GPIO_PIN_0
+#define PUMP_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
@@ -83,6 +81,8 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
+#define FLOW_SENS_Pin GPIO_PIN_4
+#define FLOW_SENS_GPIO_Port GPIOB
 #define TFT_CS_Pin GPIO_PIN_6
 #define TFT_CS_GPIO_Port GPIOB
 
