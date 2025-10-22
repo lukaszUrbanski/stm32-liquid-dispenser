@@ -163,6 +163,7 @@ void Mpl_ButtonsScanActivity(void)
 
 				AppData.displayState = DISP_NEW;
 				dispense_time_stamp = HAL_GetTick(); // use for simulate dispensing
+				FLOW_SENSOR_ResetValue();
 			}
 			break;
 		case DEV_READY:
@@ -189,41 +190,20 @@ void Mpl_ButtonsScanActivity(void)
 
 void Mpl_SensorsReadActivity(void)
 {
-	// Code for reading sensors, if any
-	uint8_t Msg[32];
-	//uint16_t flowCounter;
-
-
-
-	//------ Simulate sensor reading here ------//
+	//------ sensor reading here ------//
 
 	if(AppData.currentDeviceState == DEV_DISPENSE)
 	{
+		if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
+		{
+			AppData.currentDeviceState = DEV_IDLE;
+			AppData.totalDispensedVolume = 0; // Reset for next time
 
-		//flowCounter = __HAL_TIM_GET_COUNTER(&htim4);
-
-		// Simulate reading a flow sensor or similar
-
-			if (AppData.totalDispensedVolume >= AppData.volumeToDispense) // Example condition to stop dispensing
-			{
-				AppData.currentDeviceState = DEV_IDLE;
-				AppData.totalDispensedVolume = FLOW_SENSOR_GetValue_ml();
-				sprintf(Msg, "FLOW counter = %d \n\r", AppData.totalDispensedVolume);
-				AppData.totalDispensedVolume = 0; // Reset for next time
-				FLOW_SENSOR_ResetValue();
-				AppData.displayState = DISP_NEW;
-			}
-			else{
-				if(HAL_GetTick() - dispense_time_stamp >= 500){
-					dispense_time_stamp = HAL_GetTick();
-					AppData.totalDispensedVolume = FLOW_SENSOR_GetValue_ml();
-					sprintf(Msg, "FLOW counter = %d \n\r", AppData.totalDispensedVolume);
-					HAL_UART_Transmit(&huart2, Msg, strlen(Msg), 1000);
-					//AppData.totalDispensedVolume += 10; // Increment dispensed volume
-					AppData.displayState = DISP_UPDATE; // Mark display for update
-					// Simulate time taken to dispense
-
-				}
+			AppData.displayState = DISP_NEW;
+		}
+		else{
+			AppData.totalDispensedVolume = FLOW_SENSOR_GetValue_ml();
+			AppData.displayState = DISP_UPDATE; // Mark display for update
 			}
 	}
 	AppData.currentMPLState = MPL_PUMP_CONTROL;

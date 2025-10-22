@@ -7,15 +7,14 @@
 #include "sensors.h"
 #include "tim.h"
 
-volatile uint16_t pulseCounter;
+volatile uint32_t pulseCounter;
 
 void FLOW_SENSOR_Init(){
 	HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
 	pulseCounter = 0;
 }
-
-void FLOW_SENSOR_GetValue(uint16_t* flowValue){
-	*flowValue = pulseCounter;
+uint32_t FLOW_SENSOR_GetValue(void){
+	return pulseCounter;
 }
 
 uint32_t FLOW_SENSOR_GetValue_ml(void){

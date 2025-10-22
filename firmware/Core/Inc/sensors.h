@@ -10,10 +10,10 @@
 
 #include "main.h"
 
-#define PULSE_PER_ML 5.8
+#define PULSE_PER_ML 5.2
 
 void FLOW_SENSOR_Init();
-void FLOW_SENSOR_GetValue(uint16_t* flowValue);
+uint32_t FLOW_SENSOR_GetValue(void);
 void FLOW_SENSOR_ResetValue();
 uint32_t FLOW_SENSOR_GetValue_ml(void);
 
